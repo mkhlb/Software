@@ -58,7 +58,7 @@ class PrimitiveExecutor
      * @returns DirectControlPrimitive The direct control primitive msg
      */
     std::unique_ptr<TbotsProto::DirectControlPrimitive> stepPrimitive(
-        TbotsProto::PrimitiveExecutorStatus &status);
+        TbotsProto::PrimitiveExecutorStatus &status, bool breakbeam_tripped);
 
    private:
     /*

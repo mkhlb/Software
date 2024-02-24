@@ -69,6 +69,9 @@ typedef struct RobotConstants
     // Indefinite dribbler mode sets a speed that can be maintained indefinitely [rpm]
     float indefinite_dribbler_speed_rpm;
 
+    // Speed to spin dribbler at while waiting to catch the ball [rpm]
+    float idle_dribbler_speed_rpm;
+
     // Max force dribbler mode sets the speed that applies the maximum amount of force on
     // the ball [rpm]
     float max_force_dribbler_speed_rpm;

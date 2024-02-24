@@ -247,7 +247,7 @@ Thunderloop::~Thunderloop() {}
                 }
 
                 direct_control_ =
-                    *primitive_executor_.stepPrimitive(primitive_executor_status_);
+                    *primitive_executor_.stepPrimitive(primitive_executor_status_, power_status_.breakbeam_tripped());
             }
 
             thunderloop_status_.set_primitive_executor_step_time_ms(

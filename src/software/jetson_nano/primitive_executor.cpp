@@ -95,7 +95,7 @@ AngularVelocity PrimitiveExecutor::getTargetAngularVelocity()
 
 
 std::unique_ptr<TbotsProto::DirectControlPrimitive> PrimitiveExecutor::stepPrimitive(
-    TbotsProto::PrimitiveExecutorStatus &status)
+    TbotsProto::PrimitiveExecutorStatus &status, bool breakbeam_tripped)
 {
     time_since_trajectory_creation_ += time_step_;
     status.set_running_primitive(true);
@@ -135,7 +135,8 @@ std::unique_ptr<TbotsProto::DirectControlPrimitive> PrimitiveExecutor::stepPrimi
             auto output = createDirectControlPrimitive(
                 local_velocity, angular_velocity,
                 convertDribblerModeToDribblerSpeed(
-                    current_primitive_.move().dribbler_mode(), robot_constants_),
+                    current_primitive_.move().dribbler_mode(), robot_constants_,
+                    breakbeam_tripped),
                 current_primitive_.move().auto_chip_or_kick());
 
             return std::make_unique<TbotsProto::DirectControlPrimitive>(

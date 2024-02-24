@@ -471,12 +471,19 @@ BangBangTrajectory1DAngular createAngularTrajectoryFromParams(
 }
 
 double convertDribblerModeToDribblerSpeed(TbotsProto::DribblerMode dribbler_mode,
-                                          RobotConstants_t robot_constants)
+                                          RobotConstants_t robot_constants, bool breakbeam_tripped)
 {
     switch (dribbler_mode)
     {
         case TbotsProto::DribblerMode::INDEFINITE:
-            return robot_constants.indefinite_dribbler_speed_rpm;
+            if(breakbeam_tripped)
+            {
+                return robot_constants.indefinite_dribbler_speed_rpm;
+            }
+            else
+            {
+                return robot_constants.idle_dribbler_speed_rpm;
+            }
         case TbotsProto::DribblerMode::MAX_FORCE:
             return robot_constants.max_force_dribbler_speed_rpm;
         case TbotsProto::DribblerMode::OFF:
