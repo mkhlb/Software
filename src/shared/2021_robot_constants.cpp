@@ -19,7 +19,7 @@ RobotConstants_t create2021RobotConstants(void)
         .dribbler_width_meters = 0.088f,
         // Dribbler speeds are negative as that is the direction that sucks the ball in
         .indefinite_dribbler_speed_rpm = -10000.0f,
-        .idle_dribbler_speed_rpm = -5000.0f,
+        .idle_dribbler_speed_rpm = -6000.0f,
         .max_force_dribbler_speed_rpm  = -12000.0f,
 
         // Motor constant

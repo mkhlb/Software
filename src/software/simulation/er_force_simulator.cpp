@@ -386,7 +386,7 @@ SSLSimulationProto::RobotControl ErForceSimulator::updateSimulatorRobots(
         TbotsProto::PrimitiveExecutorStatus status;  // Added for compilation
         if (ramping)
         {
-            auto direct_control_no_ramp = primitive_executor->stepPrimitive(status);
+            auto direct_control_no_ramp = primitive_executor->stepPrimitive(status, true);
             direct_control              = getRampedVelocityPrimitive(
                 current_velocity_map.at(robot_id).first,
                 current_velocity_map.at(robot_id).second, *direct_control_no_ramp,
@@ -394,7 +394,7 @@ SSLSimulationProto::RobotControl ErForceSimulator::updateSimulatorRobots(
         }
         else
         {
-            direct_control = primitive_executor->stepPrimitive(status);
+            direct_control = primitive_executor->stepPrimitive(status, true);
         }
 
         auto command = *getRobotCommandFromDirectControl(
