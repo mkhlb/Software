@@ -855,7 +855,7 @@ int MotorService::readIntFromTMC4671(uint8_t motor, uint8_t address)
 }
 
 void MotorService::writeToControllerOrDieTrying(uint8_t motor, uint8_t address,
-                                                int32_t value)
+                                                int32_t value, bool crash)
 {
     int num_retires_left = NUM_RETRIES_SPI;
     int read_value       = 0;
@@ -877,11 +877,23 @@ void MotorService::writeToControllerOrDieTrying(uint8_t motor, uint8_t address,
     // If we get here, we have failed to write to the controller. We reset
     // the chip to clear any bad values we just wrote and crash so everything stops.
     reset_gpio_.setValue(GpioState::LOW);
-    CHECK(read_value == value) << "Couldn't write " << value
-                               << " to the TMC4671 at address " << address
-                               << " at address " << static_cast<uint32_t>(address)
-                               << " on motor " << static_cast<uint32_t>(motor)
-                               << " received: " << read_value;
+    if (crash)
+    {
+        CHECK(read_value == value) << "Couldn't write " << value
+                                   << " to the TMC4671 at address " << address
+                                   << " at address " << static_cast<uint32_t>(address)
+                                   << " on motor " << static_cast<uint32_t>(motor)
+                                   << " received: " << read_value;
+    }
+    else if (read_value != value)
+    {
+        LOG(DEBUG) << "Couldn't write " << value
+                   << " to the TMC4671 at address " << address
+                   << " at address " << static_cast<uint32_t>(address)
+                   << " on motor " << static_cast<uint32_t>(motor)
+                   << " received: " << read_value;
+    }
+
 }
 
 void MotorService::configurePWM(uint8_t motor)

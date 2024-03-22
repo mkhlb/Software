@@ -18,6 +18,7 @@ class MotorService
     static const uint8_t FRONT_RIGHT_MOTOR_CHIP_SELECT = 3;
     static const uint8_t BACK_LEFT_MOTOR_CHIP_SELECT   = 1;
     static const uint8_t BACK_RIGHT_MOTOR_CHIP_SELECT  = 2;
+    static const uint8_t DRIBBLER_MOTOR_CHIP_SELECT = 4;
 
     /**
      * Service that interacts with the motor board.
@@ -222,7 +223,7 @@ class MotorService
      * @param value The value to write
      *
      */
-    void writeToControllerOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
+    void writeToControllerOrDieTrying(uint8_t motor, uint8_t address, int32_t value, bool crash = true);
     void writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
 
     /**
@@ -385,8 +386,6 @@ class MotorService
     std::optional<std::chrono::time_point<std::chrono::system_clock>>
         tracked_motor_fault_start_time_;
     int num_tracked_motor_resets_;
-
-    static const uint8_t DRIBBLER_MOTOR_CHIP_SELECT = 4;
 
     static const uint8_t NUM_DRIVE_MOTORS = 4;
     static const uint8_t NUM_MOTORS       = NUM_DRIVE_MOTORS + 1;

@@ -48,3 +48,16 @@ cc_binary(
         "@trinamic",
     ],
 )
+
+cc_binary(
+    name = "motor_driver_test",
+    srcs = ["motor_driver_test.cpp"],
+    deps = [
+        ":motor",
+        "//shared:robot_constants",
+        "//software/logger",
+        "//software/estop:threaded_estop_reader",
+        "//software/uart:boost_uart_communication",
+        "@trinamic",
+    ]
+)
