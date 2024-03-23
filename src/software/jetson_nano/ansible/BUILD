@@ -20,6 +20,7 @@ py_binary(
         "//software/jetson_nano/linux_configs/systemd:systemd_files",
         "//software/jetson_nano/redis",
         "//software/jetson_nano/services:robot_auto_test",
+        "//software/jetson_nano/services:motor_driver_test",
         "//software/power:powerloop_tar",
     ],
     deps = [

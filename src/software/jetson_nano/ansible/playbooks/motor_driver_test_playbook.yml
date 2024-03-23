@@ -38,29 +38,8 @@
           ansible.posix.synchronize:
             src: ../../services/motor_driver_test
             dest: ~/thunderbots_binaries/
+            verify_host: yes
             recursive: yes
             copy_links: yes
           tags: always
 
-        - name: Run Binary
-          command: "./robot_auto_test"
-          args:
-            chdir: /home/robot/thunderbots_binaries
-          become_method: sudo
-          become: true
-          register: robot_auto_test_output
-          ignore_errors: true
-
-        - name: Print Binary Output
-          debug:
-            var: robot_auto_test_output.stdout
-
-        - name: Start Services
-          become: true
-          become_method: sudo
-          ansible.builtin.systemd:
-            name: "thunderloop.service"
-            masked: no
-            daemon_reload: yes
-            state: started
-          tags: always

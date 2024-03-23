@@ -166,6 +166,24 @@ class MotorService
      */
     int readIntFromTMC4671(uint8_t motor, uint8_t address);
 
+    /**
+     * A lot of initialization parameters are necessary to function. Even if
+     * there is a single bit error, we can risk frying the motor driver or
+     * controller.
+     *
+     * The following functions can be used to setup initialization params
+     * that _must_ be set to continue. A failed call will crash the program
+     *
+     * @param motor Which motor to talk to (in our case, the chip select)
+     * @param address The address to send data to
+     * @param value The value to write
+     *
+     */
+    void writeToControllerOrDieTrying(uint8_t motor, uint8_t address, int32_t value, bool crash = true);
+    void writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
+
+    std::string getMotorName(int chip_select);
+
    private:
     /**
      * Initializes Motor Service
@@ -209,22 +227,6 @@ class MotorService
     void configureADC(uint8_t motor);
     void configureEncoder(uint8_t motor);
     void configureHall(uint8_t motor);
-
-    /**
-     * A lot of initialization parameters are necessary to function. Even if
-     * there is a single bit error, we can risk frying the motor driver or
-     * controller.
-     *
-     * The following functions can be used to setup initialization params
-     * that _must_ be set to continue. A failed call will crash the program
-     *
-     * @param motor Which motor to talk to (in our case, the chip select)
-     * @param address The address to send data to
-     * @param value The value to write
-     *
-     */
-    void writeToControllerOrDieTrying(uint8_t motor, uint8_t address, int32_t value, bool crash = true);
-    void writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
 
     /**
      * Trigger an SPI transfer over an open SPI connection

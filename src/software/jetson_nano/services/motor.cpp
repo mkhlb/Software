@@ -1215,3 +1215,8 @@ void MotorService::resetMotorBoard()
 {
     reset_gpio_.setValue(GpioState::LOW);
 }
+
+std::string MotorService::getMotorName(int chip_select)
+{
+    return MOTOR_NAMES[chip_select];
+}

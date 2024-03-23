@@ -52,6 +52,11 @@ cc_binary(
 cc_binary(
     name = "motor_driver_test",
     srcs = ["motor_driver_test.cpp"],
+    linkopts = [
+        "-lpthread",
+        "-lrt",
+        "-lstdc++fs",
+    ],
     deps = [
         ":motor",
         "//shared:robot_constants",
