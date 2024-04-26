@@ -147,6 +147,13 @@ class MotorService
     void setUpDriveMotor(uint8_t motor);
 
     /**
+     * Sets up motor as dribbler motor controllers
+     *
+     * @param motor dribbler motor chip select
+     */
+     void setUpDribblerMotor(uint8_t motor);
+
+    /**
      * Used for testing purposes:
      *
      * Wrapper function that writes int to the TMC4671
@@ -179,7 +186,7 @@ class MotorService
      * @param value The value to write
      *
      */
-    void writeToControllerOrDieTrying(uint8_t motor, uint8_t address, int32_t value, bool crash = true);
+    void writeToControllerOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
     void writeToDriverOrDieTrying(uint8_t motor, uint8_t address, int32_t value);
 
     std::string getMotorName(int chip_select);

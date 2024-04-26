@@ -17,6 +17,25 @@ cc_library(
 )
 
 cc_library(
+    name = "motor_no_crash",
+    srcs = ["motor.cpp"],
+    hdrs = ["motor.h"],
+    deps = [
+        "//proto:tbots_cc_proto",
+        "//shared:robot_constants",
+        "//software/jetson_nano:gpio",
+        "//software/logger",
+        "//software/physics:euclidean_to_wheel",
+        "//software/util/scoped_timespec_timer",
+        "@eigen",
+        "@trinamic",
+    ],
+    local_defines = [
+        "NO_CRASH=1",
+    ]
+)
+
+cc_library(
     name = "power",
     srcs = ["power.cpp"],
     hdrs = ["power.h"],
@@ -53,16 +72,14 @@ cc_binary(
     name = "motor_driver_test",
     srcs = ["motor_driver_test.cpp"],
     linkopts = [
-        "-lpthread",
-        "-lrt",
         "-lstdc++fs",
     ],
     deps = [
-        ":motor",
+        ":motor_no_crash",
         "//shared:robot_constants",
         "//software/logger",
         "//software/estop:threaded_estop_reader",
         "//software/uart:boost_uart_communication",
         "@trinamic",
-    ]
+    ],
 )

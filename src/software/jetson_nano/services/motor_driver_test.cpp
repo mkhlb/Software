@@ -33,6 +33,7 @@ const std::string ESTOP_PATH_2 = "/dev/ttyUSB0";
 int main(int argc, char **argv)
 {
     LoggerSingleton::initializeLogger(runtime_dir);
+
     LOG(INFO) << "Running on the Jetson Nano!";
 
     LOG(INFO) << "Configuring the e-stop";
@@ -67,6 +68,8 @@ int main(int argc, char **argv)
     motor_service_->setUpDriveMotor(motor_service_->BACK_LEFT_MOTOR_CHIP_SELECT);
     motor_service_->setUpDriveMotor(motor_service_->BACK_RIGHT_MOTOR_CHIP_SELECT);
 
+    motor_service_->setUpDribblerMotor(motor_service_->DRIBBLER_MOTOR_CHIP_SELECT);
+
 
     while (true)
     {
@@ -79,7 +82,7 @@ int main(int argc, char **argv)
             //if estop is not in play, stop motor and continue
             if (stop)
             {
-                motor_service_->writeToControllerOrDieTrying(chip_select, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x00000000, false);
+                motor_service_->writeToControllerOrDieTrying(chip_select, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x00000000);
                 continue;
             }
 
@@ -91,8 +94,8 @@ int main(int argc, char **argv)
             // Check if CHIPINFO_DATA returns 0x34363731
             if (read_value != ASCII_4671_IN_HEXADECIMAL)
             {
-                LOG(INFO) << motor_service_->getMotorName(chip_select) << " motor: SPI Transfer is not successful";
-                motor_service_->writeToControllerOrDieTrying(chip_select, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x00000000, false);
+                LOG(INFO) << motor_service_->getMotorName(chip_select) << " motor @ chip select " << std::to_string(chip_select) << ": SPI Transfer is not successful";
+                motor_service_->writeToControllerOrDieTrying(chip_select, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x00000000);
                 continue;
             }
 
@@ -112,9 +115,6 @@ int main(int argc, char **argv)
 
             // 200 RPM
             motor_service_->writeToControllerOrDieTrying(chip_select, TMC4671_OPENLOOP_VELOCITY_TARGET, 0x00000058);
-
-            LOG(INFO) << motor_service_->readIntFromTMC4671(chip_select, TMC4671_OPENLOOP_VELOCITY_ACTUAL);
-            LOG(INFO) << "Moved robot";
         }
 
         usleep(DELAY_MICROSECONDS);
