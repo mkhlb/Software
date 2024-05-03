@@ -58,6 +58,8 @@ enum MaxAllowedSpeedMode
     STOP_COMMAND = 1;
     // Move at speed at which collisions are allowed
     COLLISIONS_ALLOWED = 2;
+    // Move at a tuned slower speed for pivot kicking
+    PIVOT = 3;
 }
 
 message AutoChipOrKick

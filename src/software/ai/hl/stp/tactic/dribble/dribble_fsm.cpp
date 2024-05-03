@@ -107,9 +107,15 @@ void DribbleFSM::dribble(const Update &event)
             event.control_params.dribble_destination,
             event.control_params.final_dribble_orientation);
 
+    TbotsProto::MaxAllowedSpeedMode speedMode = TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT;
+
+    if (event.control_params.slow_possession) {
+        speedMode = TbotsProto::MaxAllowedSpeedMode::PIVOT;
+    }
+
     event.common.set_primitive(std::make_unique<MovePrimitive>(
         event.common.robot, target_destination, target_orientation,
-        TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
+        speedMode,
         TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
         AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
 }

@@ -36,6 +36,8 @@ struct DribbleFSM
         std::optional<Angle> final_dribble_orientation;
         // whether to allow excessive dribbling, i.e. more than 1 metre at a time
         bool allow_excessive_dribbling;
+        // Wether or not to move at a slower speed when possessing the ball
+        bool slow_possession = false;
     };
 
     DEFINE_TACTIC_UPDATE_STRUCT_WITH_CONTROL_AND_COMMON_PARAMS
