@@ -138,7 +138,7 @@ class Gamecontroller(object):
 
     def send_gc_command(
         self,
-        gc_command: proto.ssl_gc_state_pb2.Command,
+        gc_command_type: proto.ssl_gc_state_pb2.Command.Type,
         team: proto.ssl_gc_common_pb2.Team,
         final_ball_placement_point: tbots_cpp.Point = None,
     ) -> Any:
@@ -159,7 +159,7 @@ class Gamecontroller(object):
         api_input = Input()
         change = Change()
         new_command = NewCommand()
-        command = Command(type=gc_command, for_team=team)
+        command = Command(type=gc_command_type, for_team=team)
 
         new_command.command.CopyFrom(command)
         change.new_command.CopyFrom(new_command)
@@ -172,8 +172,8 @@ class Gamecontroller(object):
             ball_placement_pos = SetBallPlacementPos()
             ball_placement_pos.pos.CopyFrom(
                 Vector2(
-                    x=float(final_ball_placement_point.x()),
-                    y=float(final_ball_placement_point.y()),
+                    x=float(final_ball_placement_point.x_meters),
+                    y=float(final_ball_placement_point.y_meters),
                 )
             )
             change = Change()

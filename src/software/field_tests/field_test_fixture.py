@@ -87,16 +87,17 @@ class FieldTestRunner(TbotsTestRunner):
 
     def send_gamecontroller_command(
         self,
-        gc_command: proto.ssl_gc_state_pb2.Command,
+        gc_command: proto.ssl_gc_state_pb2.Command.Type,
         team: proto.ssl_gc_common_pb2.Team,
         final_ball_placement_point=None,
     ):
 
-        self.gamecontroller.send_ci_input(
-            gc_command=gc_command,
+        self.gamecontroller.send_gc_command(
+            gc_command_type=gc_command,
             team=team,
             final_ball_placement_point=final_ball_placement_point,
         )
+
 
     def time_provider(self):
         """Provide the current time in seconds since the epoch"""

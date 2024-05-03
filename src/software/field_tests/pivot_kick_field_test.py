@@ -17,7 +17,7 @@ logger = createLogger(__name__)
 
 def test_pivot_kick(field_test_runner):
 
-    id = 0
+    id = 7
 
     world = field_test_runner.world_buffer.get(block=True, timeout=WORLD_BUFFER_TIMEOUT)
     print("Here are the robots:")
@@ -31,7 +31,7 @@ def test_pivot_kick(field_test_runner):
     params = AssignedTacticPlayControlParams()
     params.assigned_tactics[id].pivot_kick.CopyFrom(
         PivotKickTactic(
-            kick_origin=Point(x_meters=-1.13, y_meters=0.75),
+            kick_origin=Point(x_meters=-0.4, y_meters=0.4),
             kick_direction=Angle(radians=-math.pi / 2),
             auto_chip_or_kick=AutoChipOrKick(autokick_speed_m_per_s=5.0),
         )

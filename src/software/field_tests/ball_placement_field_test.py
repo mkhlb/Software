@@ -18,14 +18,9 @@ logger = createLogger(__name__)
 
 def test_ball_placement(field_test_runner):
     # robot ID
-    id = 5
+    id = 7
     # point to place ball
-    placement_point = Point(0, 0)
-    command = Command(
-        type=Command.Type.BALL_PLACEMENT
-    )
-
-    command = Command(Command.Type.BALL_PLACEMENT)
+    placement_point = Point(x_meters=0, y_meters=0)
 
     world = field_test_runner.world_buffer.get(block=True, timeout=WORLD_BUFFER_TIMEOUT)
     print("Here are the robots:")
@@ -36,7 +31,7 @@ def test_ball_placement(field_test_runner):
         ]
     )
 
-    field_test_runner.send_gamecontroller_command(command, True, placement_point)
+    field_test_runner.send_gamecontroller_command(Command.Type.BALL_PLACEMENT, True, placement_point)
     field_test_runner.run_test(
         always_validation_sequence_set=[[]],
         eventually_validation_sequence_set=[[]],
