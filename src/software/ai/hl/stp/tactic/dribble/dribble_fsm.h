@@ -38,6 +38,8 @@ struct DribbleFSM
         bool allow_excessive_dribbling;
         // Wether or not to move at a slower speed when possessing the ball
         bool slow_possession = false;
+        // Wether or not to avoid the ball when dribbling
+        bool pivot_ball = false;
     };
 
     DEFINE_TACTIC_UPDATE_STRUCT_WITH_CONTROL_AND_COMMON_PARAMS

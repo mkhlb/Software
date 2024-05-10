@@ -3,12 +3,11 @@
 #include "software/ai/hl/stp/tactic/move_primitive.h"
 
 
-void PivotKickFSM::getPossessionAndPivot(
-    const Update& event, boost::sml::back::process<DribbleFSM::Update> processEvent)
-{
+void PivotKickFSM::PossessAndDribbleFSM::getPossessionAndDrive(
+        const Update &event, boost::sml::back::process<DribbleFSM::Update> processEvent) {
     DribbleFSM::ControlParams control_params{
         .dribble_destination       = event.control_params.kick_origin,
-        .final_dribble_orientation = event.control_params.kick_direction,
+        .final_dribble_orientation = std::nullopt,
         .allow_excessive_dribbling = false,
         .slow_possession           = true};
 
@@ -39,4 +38,27 @@ bool PivotKickFSM::ballKicked(const Update& event)
         return !event.common.robot.isNearDribbler(
             event.common.world_ptr->ball().position(), ROBOT_MAX_RADIUS_METERS);
     }
+}
+
+void PivotKickFSM::possessAndDribble(
+        const Update &event, boost::sml::back::process<PossessAndDribbleFSM::Update> processEvent)
+{
+    PossessAndDribbleFSM::ControlParams control_params{
+            .kick_origin = event.control_params.kick_origin};
+
+    processEvent(PossessAndDribbleFSM::Update(control_params, event.common));
+}
+
+void PivotKickFSM::pivot(
+        const Update &event, boost::sml::back::process<DribbleFSM::Update> processEvent)
+{
+    DribbleFSM::ControlParams control_params{
+        .dribble_destination = event.control_params.kick_origin,
+        .final_dribble_orientation = event.control_params.kick_direction,
+        .allow_excessive_dribbling = false,
+        .slow_possession = true,
+        .pivot_ball = false
+    };
+
+    processEvent(DribbleFSM::Update(control_params, event.common));
 }

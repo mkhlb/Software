@@ -273,6 +273,7 @@ PYBIND11_MODULE(python_bindings, m)
     m.def("createSegment", &createSegment);
 
     m.def("createPointProto", &createPointProto);
+    m.def("createAngleProto", &createAngleProto);
     m.def("createPolygonProto", &createPolygonProto);
     m.def("createCircleProto", &createCircleProto);
     m.def("createVectorProto", &createVectorProto);

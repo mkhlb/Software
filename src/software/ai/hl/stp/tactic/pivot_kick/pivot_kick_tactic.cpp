@@ -19,6 +19,7 @@ PivotKickTactic::PivotKickTactic(TbotsProto::AiConfig ai_config)
     for (RobotId id = 0; id < MAX_ROBOT_IDS; id++)
     {
         fsm_map[id] = std::make_unique<FSM<PivotKickFSM>>(
+            PivotKickFSM::PossessAndDribbleFSM(),
             DribbleFSM(ai_config.dribble_tactic_config()));
     }
 }

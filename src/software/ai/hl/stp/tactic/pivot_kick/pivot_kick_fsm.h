@@ -7,8 +7,46 @@
 
 struct PivotKickFSM
 {
+    struct PossessAndDribbleFSM
+    {
+        class StartState;
+
+        struct ControlParams
+        {
+            // The location where the kick will be taken from
+            Point kick_origin;
+        };
+
+        DEFINE_TACTIC_UPDATE_STRUCT_WITH_CONTROL_AND_COMMON_PARAMS
+
+        /**
+         * Action that updates the DribbleFSM to get possession of the ball and drive it to the shot spot
+         *
+         * @param event PivotKickFSM::Update event
+         * @param processEvent processes the GetBehindBallFSM::Update
+         */
+        void getPossessionAndDrive(
+                const Update& event, boost::sml::back::process<DribbleFSM::Update> processEvent);
+
+        auto operator()()
+        {
+            using namespace boost::sml;
+
+            DEFINE_SML_STATE(StartState)
+            DEFINE_SML_STATE(DribbleFSM)
+            DEFINE_SML_EVENT(Update)
+
+            DEFINE_SML_SUB_FSM_UPDATE_ACTION(getPossessionAndDrive, DribbleFSM)
+
+            return make_transition_table(
+                    // src_state + event [guard] / action = dest_state
+                    *StartState_S + Update_E / getPossessionAndDrive_A = DribbleFSM_S,
+                    DribbleFSM_S + Update_E / getPossessionAndDrive_A, DribbleFSM_S = X,
+                    X + Update_E / SET_STOP_PRIMITIVE_ACTION = X);
+        }
+    };
+
     class KickState;
-    class StartState;
 
     struct ControlParams
     {
@@ -23,14 +61,7 @@ struct PivotKickFSM
     // this struct defines the only event that the PivotKickFSM responds to
     DEFINE_TACTIC_UPDATE_STRUCT_WITH_CONTROL_AND_COMMON_PARAMS
 
-    /**
-     * Action that updates the DribbleFSM to get possession of the ball and pivot
-     *
-     * @param event PivotKickFSM::Update event
-     * @param processEvent processes the GetBehindBallFSM::Update
-     */
-    void getPossessionAndPivot(
-        const Update& event, boost::sml::back::process<DribbleFSM::Update> processEvent);
+    void possessAndDribble(const Update& event, boost::sml::back::process<PossessAndDribbleFSM::Update> processEvent);
 
     /**
      * Action that kicks the ball
@@ -38,6 +69,12 @@ struct PivotKickFSM
      * @param event PivotKickFSM::Update event
      */
     void kickBall(const Update& event);
+
+    /**
+     * Action that updates the DribbleFSM to pivot to shoot the ball at the target
+     * @param event
+     */
+    void pivot(const Update& event, boost::sml::back::process<DribbleFSM::Update> processEvent);
 
     /**
      * Guard that checks if the ball has been kicked
@@ -48,23 +85,28 @@ struct PivotKickFSM
      */
     bool ballKicked(const Update& event);
 
+
+
+
     auto operator()()
     {
         using namespace boost::sml;
 
-        DEFINE_SML_STATE(StartState)
+        DEFINE_SML_STATE(PossessAndDribbleFSM)
         DEFINE_SML_STATE(KickState)
         DEFINE_SML_STATE(DribbleFSM)
         DEFINE_SML_EVENT(Update)
 
         DEFINE_SML_GUARD(ballKicked)
-        DEFINE_SML_SUB_FSM_UPDATE_ACTION(getPossessionAndPivot, DribbleFSM)
+        DEFINE_SML_SUB_FSM_UPDATE_ACTION(possessAndDribble, PossessAndDribbleFSM)
+        DEFINE_SML_SUB_FSM_UPDATE_ACTION(pivot, DribbleFSM)
         DEFINE_SML_ACTION(kickBall)
 
         return make_transition_table(
             // src_state + event [guard] / action = dest_state
-            *StartState_S + Update_E / getPossessionAndPivot_A = DribbleFSM_S,
-            DribbleFSM_S + Update_E / getPossessionAndPivot_A, DribbleFSM_S = KickState_S,
+            *PossessAndDribbleFSM_S + Update_E / possessAndDribble_A,
+            PossessAndDribbleFSM_S = DribbleFSM_S,
+            DribbleFSM_S + Update_E / pivot_A, DribbleFSM_S = KickState_S,
             KickState_S + Update_E[!ballKicked_G] / kickBall_A,
             KickState_S + Update_E[ballKicked_G] / SET_STOP_PRIMITIVE_ACTION = X,
             X + Update_E / SET_STOP_PRIMITIVE_ACTION                         = X);
