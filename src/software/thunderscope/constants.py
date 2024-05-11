@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Optional
+
 from pyqtgraph.Qt import QtCore, QtGui
 from proto.import_all_protos import *
 from enum import Enum, IntEnum
@@ -317,3 +320,107 @@ class TrailValues:
 
     DEFAULT_TRAIL_LENGTH = 20
     DEFAULT_TRAIL_SAMPLING_RATE = 0
+
+
+class RobotControlType(Enum):
+    MOVE_X = 1
+    MOVE_Y = 2
+    ROTATE = 3
+    KICK = 4
+    CHIP = 5
+    KICK_POWER = 6
+    DRIBBLER_SPEED = 7
+    DRIBBLER_ENABLE_1 = 8
+    DRIBBLER_ENABLE_2 = 9
+
+
+# TODO: come up with less ambiguous/weird name
+class HandheldDeviceConfigKeys(Enum):
+    CODE = 1
+    MAX_VALUE = 2
+
+
+# nomenclature:
+
+@dataclass
+class HDKeyEvent:
+    """
+    This dataclass holds the code for a key input event
+    """
+    event_code: int
+
+
+@dataclass
+class HDAbsEvent:
+    """
+    This dataclass holds the code and max value for an abs input event
+
+    """
+    event_code: int
+    max_value: float
+
+
+@dataclass
+class HDIEConfig:
+    move_x: HDAbsEvent
+    move_y: HDAbsEvent
+    move_rot: HDAbsEvent
+    kick: HDKeyEvent
+    chip: HDKeyEvent
+    chicker_power: HDAbsEvent
+    dribbler_speed: HDAbsEvent
+    primary_dribbler_enable: HDAbsEvent
+    secondary_dribbler_enable: HDAbsEvent
+
+
+class HandheldDeviceConstants:
+    XboxConfig = HDIEConfig(
+        # Name: "ABS_X"
+        # Canonical: Left joystick X-axis
+        move_x=HDAbsEvent(event_code=0, max_value=32767.0),
+        # Name: "ABS_Y"
+        # Canonical: Left joystick Y-axis
+        move_y=HDAbsEvent(event_code=1, max_value=32767.0),
+        # Name: "ABS_RX"
+        # Canonical: Right joystick X-axis
+        move_rot=HDAbsEvent(event_code=3, max_value=32767.0),
+        # Name: "BTN_A"
+        # Canonical: "A" Button
+        kick=HDKeyEvent(event_code=304),
+        # Name: "BTN_Y"
+        # Canonical: "Y" Button
+        chip=HDKeyEvent(event_code=308),
+        # Name: "ABS_HAT0X
+        # Canonical: D-pad X-axis
+        chicker_power=HDAbsEvent(event_code=16, max_value=1.0),
+        # Name: "ABS_HAT0Y", Type: EV_ABS
+        # Canonical: D-pad Y-axis
+        dribbler_speed=HDAbsEvent(event_code=17, max_value=1.0),
+        # Name: "ABS_Z", Type: EV_ABS
+        # Canonical: Left trigger
+        primary_dribbler_enable=HDAbsEvent(event_code=2, max_value=1023.0),
+        # Name: "ABS_RZ", Type: EV_ABS
+        # Canonical: Right trigger
+        secondary_dribbler_enable=HDAbsEvent(event_code=5, max_value=1023.0),
+    )
+
+    CONTROLLER_NAME_CONFIG_MAP = {
+        "Microsoft Xbox One X pad": XboxConfig,
+        "Microsoft X-Box One S pad": XboxConfig,
+        "Microsoft X-Box 360 pad": XboxConfig,
+    }
+
+    INPUT_DELAY_THRESHOLD = 0.01
+    DEADZONE_PERCENTAGE = 0.10
+
+    DRIBBLER_RPM_STEPPER = 1000
+    # This is actually considered to be an "indefinite" speed in the robots software backend
+    DRIBBLER_MAX_RPM = 10000
+
+    KICK_POWER_STEPPER = 1000.0
+    MIN_KICK_POWER = 1000.0
+    MAX_KICK_POWER = 20000.0
+
+    CHIP_DISTANCE_STEPPER = 0.25
+    MIN_CHIP_POWER = 0.25
+    MAX_CHIP_POWER = 5.0
