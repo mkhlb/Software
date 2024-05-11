@@ -19,6 +19,7 @@ from proto.ssl_gc_common_pb2 import Team
         (tbots_cpp.Point(1, 0), tbots_cpp.Point(0, 0), tbots_cpp.Point(1, 0), tbots_cpp.Angle.fromDegrees(0),),
         (tbots_cpp.Point(1, 0), tbots_cpp.Point(2, 0), tbots_cpp.Point(1, 0), tbots_cpp.Angle.fromDegrees(0),),
         (tbots_cpp.Point(1, 0), tbots_cpp.Point(1, 1), tbots_cpp.Point(1.6, 0), tbots_cpp.Angle.fromDegrees(0),),
+        (tbots_cpp.Point(1, 0), tbots_cpp.Point(1, 1), tbots_cpp.Point(1.0, -0.50), tbots_cpp.Angle.fromDegrees(0),),
     ]
 )
 def test_pivot_kick_tactic(ball_initial_position, robot_initial_position,

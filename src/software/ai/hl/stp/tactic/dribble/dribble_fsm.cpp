@@ -96,7 +96,7 @@ void DribbleFSM::getPossession(const Update &event)
         event.common.robot, intercept_position, face_ball_orientation,
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
-        TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
+        TbotsProto::DribblerMode::INDEFINITE, TbotsProto::BallCollisionType::ALLOW,
         AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
 }
 
@@ -122,7 +122,7 @@ void DribbleFSM::dribble(const Update &event)
         event.common.robot, target_destination, target_orientation,
         speedMode,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
-        TbotsProto::DribblerMode::MAX_FORCE, collisionType,
+        TbotsProto::DribblerMode::INDEFINITE, collisionType,
         AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
 }
 

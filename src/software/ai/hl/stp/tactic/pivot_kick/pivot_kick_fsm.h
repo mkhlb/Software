@@ -7,6 +7,21 @@
 
 struct PivotKickFSM
 {
+    struct TurnToKickOriginFSM
+    {
+        struct ControlParams
+        {
+
+        };
+
+        DEFINE_TACTIC_UPDATE_STRUCT_WITH_CONTROL_AND_COMMON_PARAMS
+
+        void turnToKickOrigin(
+                const Update& event, boost::sml::back::process<DribbleFSM::Update> processEvent);
+
+
+    };
+
     struct PossessAndDribbleFSM
     {
         class StartState;
@@ -46,6 +61,7 @@ struct PivotKickFSM
         }
     };
 
+    class PossessBall;
     class KickState;
 
     struct ControlParams
@@ -61,7 +77,9 @@ struct PivotKickFSM
     // this struct defines the only event that the PivotKickFSM responds to
     DEFINE_TACTIC_UPDATE_STRUCT_WITH_CONTROL_AND_COMMON_PARAMS
 
-    void possessAndDribble(const Update& event, boost::sml::back::process<PossessAndDribbleFSM::Update> processEvent);
+    void possess(const Update& event);
+
+    void turnToKick(const Update& event, boost::sml::back::process<>)
 
     /**
      * Action that kicks the ball
