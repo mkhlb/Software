@@ -79,7 +79,7 @@ struct PivotKickFSM
 
     void possess(const Update& event);
 
-    void turnToKick(const Update& event, boost::sml::back::process<>)
+    void turnToKick(const Update& event, boost::sml::back::process<DribbleFSM::Update> processEvent);
 
     /**
      * Action that kicks the ball
