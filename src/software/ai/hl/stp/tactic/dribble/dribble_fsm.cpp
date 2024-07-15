@@ -128,12 +128,26 @@ void DribbleFSM::getPossession(const Update &event)
                               event.common.world_ptr->field()) +
         Vector::createFromAngle(face_ball_orientation).normalize(0.05);
 
+    auto dribble_estimate_time = 0.0;
+    if (event.control_params.dribble_destination.has_value())
+    {
+        BangBangTrajectory2D dribble_estimate;
+        double max_speed = convertMaxAllowedSpeedModeToMaxAllowedSpeed(event.control_params.max_speed_dribble, event.common.robot.robotConstants());
+        dribble_estimate.generate(intercept_position, event.control_params.dribble_destination.value(), Vector(0, 0), max_speed,
+                                  event.common.robot.robotConstants().robot_max_acceleration_m_per_s_2,
+                                  event.common.robot.robotConstants().robot_max_deceleration_m_per_s_2);
+        dribble_estimate_time = dribble_estimate.getTotalTime();
+    }
+
+
+
     event.common.set_primitive(std::make_unique<MovePrimitive>(
         event.common.robot, intercept_position, face_ball_orientation,
         event.control_params.max_speed_get_possession,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
         TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
-        AutoChipOrKick{AutoChipOrKickMode::OFF, 0}));
+        AutoChipOrKick{AutoChipOrKickMode::OFF, 0},
+        std::make_optional(dribble_estimate_time)));
 }
 
 void DribbleFSM::dribble(const Update &event)
