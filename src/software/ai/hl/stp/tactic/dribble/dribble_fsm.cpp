@@ -168,12 +168,19 @@ void DribbleFSM::loseBall(const Update &event)
         ball_position, face_ball_orientation,
         dribble_tactic_config.lose_ball_possession_threshold() * 2);
 
+    std::vector<Point> additional_points = {};
+    if (event.control_params.dribble_destination.has_value())
+    {
+        additional_points.push_back(event.control_params.dribble_destination.value());
+    }
+
     event.common.set_primitive(std::make_unique<MovePrimitive>(
         event.common.robot, away_from_ball_position, face_ball_orientation,
         event.control_params.max_speed_get_possession,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE, TbotsProto::DribblerMode::OFF,
         TbotsProto::BallCollisionType::AVOID,
-        AutoChipOrKick{AutoChipOrKickMode::AUTOKICK, 0.5}));
+        AutoChipOrKick{AutoChipOrKickMode::AUTOKICK, 0.5},
+        additional_points));
 }
 
 void DribbleFSM::startDribble(const Update &event)

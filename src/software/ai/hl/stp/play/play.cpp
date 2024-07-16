@@ -269,6 +269,7 @@ Play::assignTactics(const WorldPtr &world_ptr, TacticVector tactic_vector,
 
     for (auto tactic : tactic_vector)
     {
+        LOG(DEBUG) << "Robot:" << robot.id() << "\nCost:" << primitive->getEstimatedPrimitiveCost() << "\nState:" << tactic->getFSMState();
         primitive_sets.emplace_back(tactic->get(world_ptr));
         CHECK(primitive_sets.back().size() == world_ptr->friendlyTeam().numRobots())
             << primitive_sets.back().size() << " primitives from "
@@ -276,6 +277,8 @@ Play::assignTactics(const WorldPtr &world_ptr, TacticVector tactic_vector,
             << " is not equal to the number of robots, which is "
             << world_ptr->friendlyTeam().numRobots();
     }
+
+    LOG(DEBUG) << "DONE UPDATING PRIMITIVES";
 
     size_t num_rows = robots_to_assign.size();
     size_t num_cols = tactic_vector.size();

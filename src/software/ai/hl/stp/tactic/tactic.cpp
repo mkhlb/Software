@@ -46,6 +46,8 @@ std::map<RobotId, std::shared_ptr<Primitive>> Tactic::get(const WorldPtr &world_
                 !last_execution_robot.has_value() ||
                     last_execution_robot.value() != robot.id());
 
+
+
             CHECK(primitive != nullptr)
                 << "Primitive for " << objectTypeName(*this) << " in state "
                 << getFSMState() << " was not set" << std::endl;
