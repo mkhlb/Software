@@ -130,6 +130,7 @@ def configure_base_fullsystem(
     extra_widgets: List[TScopeWidget] = [],
     refresh_func_counter: FrameTimeCounter = None,
     buffer_func_counter: FrameTimeCounter = None,
+    add_parameter_widget: bool = True
 ) -> list:
     """
     Returns a list of widget data for a FullSystem tab
@@ -146,6 +147,7 @@ def configure_base_fullsystem(
     :param extra_widgets: a list of additional widget data to append
     :param refresh_func_counter: a counter that is used to keep track of the refresh func frametime
     :param buffer_func_counter: a counter that is used to count the bufferswap frametime callback
+    :param add_parameter_widget:
     :return: list of widget data for FullSystem
     """
 
@@ -172,16 +174,10 @@ def configure_base_fullsystem(
             ),
         ),
         TScopeWidget(
-            name="Parameters",
-            widget=setup_parameter_widget(
-                **{
-                    "proto_unix_io": full_system_proto_unix_io,
-                    "friendly_colour_yellow": friendly_colour_yellow,
-                }
-            ),
+            name="Logs",
+            widget=setup_log_widget(**{"proto_unix_io": full_system_proto_unix_io}),
             anchor="Field",
             position="left",
-            has_refresh_func=False,
             stretch=WidgetStretchData(x=5),
         ),
         TScopeWidget(
@@ -189,15 +185,8 @@ def configure_base_fullsystem(
             widget=setup_robot_error_log_view_widget(
                 **{"proto_unix_io": full_system_proto_unix_io}
             ),
-            anchor="Parameters",
-            position="above",
-            stretch=WidgetStretchData(x=5),
-        ),
-        TScopeWidget(
-            name="Logs",
-            widget=setup_log_widget(**{"proto_unix_io": full_system_proto_unix_io}),
-            anchor="Parameters",
-            position="above",
+            anchor="Logs",
+            position="below",
             stretch=WidgetStretchData(x=5),
         ),
         TScopeWidget(
@@ -249,7 +238,21 @@ def configure_base_fullsystem(
             position="above",
             stretch=WidgetStretchData(y=4),
         ),
-    ] + extra_widgets
+    ] + extra_widgets + ([
+        TScopeWidget(
+            name="Parameters",
+            widget=setup_parameter_widget(
+                **{
+                    "proto_unix_io": full_system_proto_unix_io,
+                    "friendly_colour_yellow": friendly_colour_yellow,
+                }
+            ),
+            anchor="Logs",
+            position="below",
+            has_refresh_func=False,
+            stretch=WidgetStretchData(x=5),
+        )
+    ] if add_parameter_widget else [])
 
 
 def configure_base_diagnostics(
@@ -407,6 +410,7 @@ def configure_simulated_test_view(
                     friendly_colour_yellow=False,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
+                    add_parameter_widget=False,
                 ),
             ),
             TScopeQTTab(
@@ -420,6 +424,7 @@ def configure_simulated_test_view(
                     friendly_colour_yellow=True,
                     visualization_buffer_size=visualization_buffer_size,
                     extra_widgets=[],
+                    add_parameter_widget=False,
                 ),
             ),
         ],
@@ -473,6 +478,7 @@ def configure_field_test_view(
                             proto_unix_io_map[ProtoUnixIOTypes.YELLOW]
                         )
                     ],
+                    add_parameter_widget=False,
                 ),
             )
         ]
@@ -491,6 +497,7 @@ def configure_field_test_view(
                             proto_unix_io_map[ProtoUnixIOTypes.BLUE]
                         )
                     ],
+                    add_parameter_widget=False,
                 ),
             )
         ]
