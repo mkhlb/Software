@@ -62,6 +62,7 @@ class MovePrimitive : public Primitive
         TbotsProto::ObstacleList &obstacle_list_out,
         TbotsProto::PathVisualization &path_visualization_out) const override;
 
+
    private:
     /**
      * Helper for filling the `obstacles` vector with the obstacles that the primitive

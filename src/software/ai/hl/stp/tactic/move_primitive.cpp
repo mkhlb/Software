@@ -49,6 +49,8 @@ MovePrimitive::MovePrimitive(
         previous_point = additional_point;
     }
 
+    extra_time = additional_points_time;
+
     estimated_cost =
         std::max(trajectory.getTotalTime(), angular_trajectory.getTotalTime()) + additional_points_time;
 

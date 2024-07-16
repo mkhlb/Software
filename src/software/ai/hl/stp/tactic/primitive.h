@@ -53,6 +53,8 @@ class Primitive
         return estimated_cost;
     }
 
+    double extra_time = 0;
+
    protected:
     double estimated_cost = 0;
 };

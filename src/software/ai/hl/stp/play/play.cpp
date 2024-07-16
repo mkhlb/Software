@@ -269,8 +269,14 @@ Play::assignTactics(const WorldPtr &world_ptr, TacticVector tactic_vector,
 
     for (auto tactic : tactic_vector)
     {
-        LOG(DEBUG) << "Robot:" << robot.id() << "\nCost:" << primitive->getEstimatedPrimitiveCost() << "\nState:" << tactic->getFSMState();
-        primitive_sets.emplace_back(tactic->get(world_ptr));
+        auto map = tactic->get(world_ptr);
+        for (Robot robot : robots_to_assign)
+        {
+            auto primitive = map[robot.id()];
+            LOG(DEBUG) << "Robot:" << robot.id() << "\nCost:" << primitive->getEstimatedPrimitiveCost() << "\nExtra time:" << primitive->extra_time << "\nState:" << tactic->getFSMState();
+        }
+
+        primitive_sets.emplace_back(map);
         CHECK(primitive_sets.back().size() == world_ptr->friendlyTeam().numRobots())
             << primitive_sets.back().size() << " primitives from "
             << objectTypeName(*tactic)
