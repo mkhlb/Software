@@ -13,6 +13,8 @@ from typing import Any, Callable, Tuple, Type
 import threading
 import time
 import os
+import numpy as np
+import collections
 from google.protobuf.message import Message
 
 DISCONNECTED = "DISCONNECTED"
@@ -114,6 +116,9 @@ class RobotCommunication(object):
         self.run_primitive_set_thread = threading.Thread(
             target=self.__run_primitive_set, daemon=True
         )
+
+        self.latency_queue = collections.deque(maxlen=30)
+        # np.percentile(np.array(list(self.latency_queue)), 50) TODO (NIMA)
 
         # initialising the estop
         # tries to access a plugged in estop. if not found, throws an exception
