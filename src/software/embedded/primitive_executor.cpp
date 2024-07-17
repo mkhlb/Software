@@ -48,7 +48,7 @@ void PrimitiveExecutor::updatePrimitiveSet(
 
             angular_trajectory_ = createAngularTrajectoryFromParams(
                     current_primitive_.move().w_traj_params(), angular_velocity_,
-                    robot_constants_);
+                    robot_constants_, current_primitive_.move().max_speed_mode());
 
             time_since_trajectory_creation_ =
                     Duration::fromSeconds(VISION_TO_ROBOT_DELAY_S);
@@ -112,8 +112,9 @@ std::unique_ptr<TbotsProto::DirectControlPrimitive> PrimitiveExecutor::stepPrimi
     time_since_trajectory_creation_ += time_step_;
     status.set_running_primitive(true);
 
+
     trajectory_path_ = createTrajectoryPathFromParams(
-        current_primitive_.move().xy_traj_params(), curr_robot_position_, velocity_, robot_constants_);
+            current_primitive_.move().xy_traj_params(), curr_robot_position_, velocity_, robot_constants_, current_primitive_.move().max_speed_mode());
 
     switch (current_primitive_.primitive_case())
     {
