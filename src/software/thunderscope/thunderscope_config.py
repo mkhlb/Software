@@ -171,32 +171,32 @@ def configure_base_fullsystem(
                 }
             ),
         ),
-        TScopeWidget(
-            name="Parameters",
-            widget=setup_parameter_widget(
-                **{
-                    "proto_unix_io": full_system_proto_unix_io,
-                    "friendly_colour_yellow": friendly_colour_yellow,
-                }
-            ),
-            anchor="Field",
-            position="left",
-            has_refresh_func=False,
-            stretch=WidgetStretchData(x=5),
-        ),
+        # TScopeWidget(
+        #     name="Parameters",
+        #     widget=setup_parameter_widget(
+        #         **{
+        #             "proto_unix_io": full_system_proto_unix_io,
+        #             "friendly_colour_yellow": friendly_colour_yellow,
+        #         }
+        #     ),
+        #     anchor="Field",
+        #     position="left",
+        #     has_refresh_func=False,
+        #     stretch=WidgetStretchData(x=5),
+        # ), TODO
         TScopeWidget(
             name="Error Log",
             widget=setup_robot_error_log_view_widget(
                 **{"proto_unix_io": full_system_proto_unix_io}
             ),
-            anchor="Parameters",
-            position="above",
+            anchor="Field",
+            position="left",
             stretch=WidgetStretchData(x=5),
         ),
         TScopeWidget(
             name="Logs",
             widget=setup_log_widget(**{"proto_unix_io": full_system_proto_unix_io}),
-            anchor="Parameters",
+            anchor="Error Log",
             position="above",
             stretch=WidgetStretchData(x=5),
         ),
@@ -468,7 +468,11 @@ def configure_field_test_view(
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=True,
                     visualization_buffer_size=visualization_buffer_size,
-                    extra_widgets=[],
+                    extra_widgets=[
+                        configure_robot_view_fullsystem(
+                            proto_unix_io_map[ProtoUnixIOTypes.YELLOW]
+                        )
+                    ],
                 ),
             )
         ]
@@ -482,7 +486,11 @@ def configure_field_test_view(
                     sim_proto_unix_io=proto_unix_io_map[ProtoUnixIOTypes.SIM],
                     friendly_colour_yellow=False,
                     visualization_buffer_size=visualization_buffer_size,
-                    extra_widgets=[],
+                    extra_widgets=[
+                        configure_robot_view_fullsystem(
+                            proto_unix_io_map[ProtoUnixIOTypes.BLUE]
+                        )
+                    ],
                 ),
             )
         ]
