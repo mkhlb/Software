@@ -2,6 +2,7 @@
 
 #include "software/geom/algorithms/distance.h"
 #include "software/logger/logger.h"
+#include "proto/message_translation/tbots_protobuf.h"
 
 SensorFusion::SensorFusion(TbotsProto::SensorFusionConfig sensor_fusion_config)
     : sensor_fusion_config(sensor_fusion_config),
@@ -40,6 +41,16 @@ std::optional<World> SensorFusion::getWorld() const
         if (referee_stage)
         {
             new_world.updateRefereeStage(*referee_stage);
+        }
+
+        if (!new_world.friendlyTeam().getAllRobots().empty())
+        {
+            Robot friendly = new_world.friendlyTeam().getAllRobots()[0];
+            LOG(PLOTJUGGLER) << *createPlotJugglerValue({
+                {"vx", friendly.velocity().x()},
+                {"vy", friendly.velocity().y()},
+                {"v", friendly.velocity().length()}
+            });
         }
 
         return new_world;
