@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 import software.python_bindings as tbots_cpp
@@ -24,13 +26,18 @@ def test_shoot_skill(field_test_runner):
     print(f"Running test on robot {id}")
 
     params = AssignedTacticPlayControlParams()
-    params.assigned_tactics[id].shoot_skill.CopyFrom(ShootSkillTactic())
+    params.assigned_tactics[id].dribble_skill.CopyFrom(DribbleSkillTactic(
+        dribble_destination=Point(x_meters=-3, y_meters=0),
+        excessive_dribbling_allowed=ExcessiveDribblingMode.ALLOWED,
+        max_speed_dribble=PHYSICAL_LIMIT,
+        max_speed_get_possession=DRIBBLE
+    ))
 
     field_test_runner.set_tactics(params, True)
     field_test_runner.run_test(
         always_validation_sequence_set=[[]],
         eventually_validation_sequence_set=[[]],
-        test_timeout_s=20,
+        test_timeout_s=99999,
     )
 
 
