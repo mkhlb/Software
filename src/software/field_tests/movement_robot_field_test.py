@@ -152,15 +152,15 @@ def test_one_robots_square(field_test_runner):
         ]
     )
 
-    id1 = world.friendly_team.team_robots[0].id
+    id1 = 4#world.friendly_team.team_robots[0].id
     logging.info(f"Running test on robot {id1=}")
     if use_two_robots:
-        id2 = world.friendly_team.team_robots[1].id
+        id2 = 0#world.friendly_team.team_robots[1].id
         logging.info(f"Running test on robot {id2=}")
 
-    left_x = 1
-    right_x = 3
-    top_y = 0
+    left_x = -3
+    right_x = -1
+    top_y = 2
     bottom_y = -2
     point1 = Point(x_meters=left_x, y_meters=top_y)
     point2 = Point(x_meters=left_x, y_meters=bottom_y)
