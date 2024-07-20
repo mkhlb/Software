@@ -251,5 +251,6 @@ struct DribbleSkillFSM
 
     Timestamp start_time;
     constexpr static double const WAIT_FOR_BACKSPIN_S = 0.35;
+    constexpr static double const DISTANCE_TO_DRIVE_SLOW_GET_POSSESSION_M = 0.8;
 
 };

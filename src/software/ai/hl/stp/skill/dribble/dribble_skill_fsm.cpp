@@ -137,9 +137,16 @@ void DribbleSkillFSM::getBallControl(const Update &event)
         additional_points.push_back(event.control_params.dribble_destination.value());
     }
 
+    TbotsProto::MaxAllowedSpeedMode speedMode = event.control_params.max_speed_get_possession;
+
+    if (distance(ball_position, event.common.robot.position()) < DISTANCE_TO_DRIVE_SLOW_GET_POSSESSION_M)
+    {
+        speedMode = event.control_params.max_speed_dribble;
+    }
+
     event.common.set_primitive(std::make_unique<MovePrimitive>(
         event.common.robot, intercept_position, face_ball_orientation,
-        event.control_params.max_speed_get_possession,
+        speedMode,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
         TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
         AutoChipOrKick{AutoChipOrKickMode::OFF, 0}, additional_points));
