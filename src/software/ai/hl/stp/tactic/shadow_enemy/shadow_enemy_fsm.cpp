@@ -66,6 +66,10 @@ bool ShadowEnemyFSM::shouldSteal(const Update &event)
     Polygon steal_ball_region({steal_ball_region_vertex_a, steal_ball_region_vertex_b,
                                steal_ball_region_vertex_c, steal_ball_region_vertex_d});
 
+//    auto robot_pos = event.common.robot.position();
+//    auto robot_angle = event.common.robot.orientation();
+//    Polygon::fromSegment(Segment(robot_pos, robot_pos + Vector::createFromAngle(robot_angle).normalize(0.7)), 0, 2 * ROBOT_MAX_RADIUS_METERS);
+
     std::optional<EnemyThreat> enemy_threat = event.control_params.enemy_threat;
 
     // Robot should be in front of the enemy threat with the ball, roughly facing towards
@@ -146,13 +150,18 @@ void ShadowEnemyFSM::blockShot(const Update &event,
 void ShadowEnemyFSM::stealAndChip(const Update &event)
 {
     auto ball_position = event.common.world_ptr->ball().position();
+    Point destination = ball_position;
+    if (event.control_params.enemy_threat.has_value())
+    {
+        destination = ball_position + Vector::createFromAngle(event.control_params.enemy_threat.value().robot.orientation()).normalize(ROBOT_MAX_RADIUS_METERS);
+    }
     auto face_ball_orientation =
         (ball_position - event.common.robot.position()).orientation();
 
     event.common.set_primitive(std::make_unique<MovePrimitive>(
-        event.common.robot, ball_position, face_ball_orientation,
+        event.common.robot, destination, face_ball_orientation,
         TbotsProto::MaxAllowedSpeedMode::PHYSICAL_LIMIT,
         TbotsProto::ObstacleAvoidanceMode::AGGRESSIVE,
         TbotsProto::DribblerMode::MAX_FORCE, TbotsProto::BallCollisionType::ALLOW,
-        AutoChipOrKick{AutoChipOrKickMode::AUTOCHIP, YEET_CHIP_DISTANCE_METERS}));
+        AutoChipOrKick{AutoChipOrKickMode::OFF, 0.0}));
 }
