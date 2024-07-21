@@ -62,7 +62,7 @@ void ShootSkillFSM::pivotKick(
         event.common.set_skill_state({.shot = best_shot_});
     }
 
-    Point kick_origin = best_shot_->getOrigin();
+    Point kick_origin = event.common.robot.position();
     Point kick_target = best_shot_->getPointToShootAt();
 
     processEvent(PivotKickSkillFSM::Update(

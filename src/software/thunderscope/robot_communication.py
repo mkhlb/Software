@@ -584,12 +584,11 @@ class RobotCommunication(object):
             self.send_primitive_set.send(primitive_set)
         else:
             for (robot_id, primitive) in primitive_set.robot_primitives.items():
-                if (robot_id in self.robots_connected_to_fullsystem) or (robot_id in self.robots_connected_to_manual) \
+                if ((robot_id in self.robots_connected_to_fullsystem) or (robot_id in self.robots_connected_to_manual)) \
                         and (self.primitive_set_senders[robot_id] is not None):
                     primitive.sequence_number = primitive_set.sequence_number
                     primitive.time_sent.CopyFrom(primitive_set.time_sent)
                     self.primitive_set_senders[robot_id].send_proto(primitive)
-            
 
     def __exit__(self, type, value, traceback) -> None:
         """Exit RobotCommunication context manager

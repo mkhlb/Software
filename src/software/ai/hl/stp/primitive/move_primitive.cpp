@@ -77,11 +77,11 @@ MovePrimitive::generatePrimitiveProtoMessage(
     // Set navigable area to field boundary shrunk by an amount that is a little bit
     // less than the robot's radius 
     Rectangle field_boundary = world.field().fieldBoundary();
-    Rectangle navigable_area =
-        Rectangle(Point(field_boundary.xMin() + ROBOT_MAX_RADIUS_METERS - 0.02,
-                        field_boundary.yMin() + ROBOT_MAX_RADIUS_METERS - 0.02),
-                  Point(field_boundary.xMax() - ROBOT_MAX_RADIUS_METERS + 0.02,
-                        field_boundary.yMax() - ROBOT_MAX_RADIUS_METERS + 0.02));
+    Rectangle navigable_area = field_boundary;
+//        Rectangle(Point(field_boundary.xMin() + ROBOT_MAX_RADIUS_METERS - 0.02,
+//                        field_boundary.yMin() + ROBOT_MAX_RADIUS_METERS - 0.02),
+//                  Point(field_boundary.xMax() - ROBOT_MAX_RADIUS_METERS + 0.02,
+//                        field_boundary.yMax() - ROBOT_MAX_RADIUS_METERS + 0.02));
 
     // If the robot is in a static obstacle, then we should first move to the nearest
     // point out

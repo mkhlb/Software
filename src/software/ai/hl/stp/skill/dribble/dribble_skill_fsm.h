@@ -224,9 +224,11 @@ struct DribbleSkillFSM
 
         return make_transition_table(
             // src_state + event [guard] / action = dest_state
-            *GetBallControl_S + Update_E[haveBallControl_G] / startWait_A = WaitForBackspin_S,
+            *GetBallControl_S + Update_E[dribblingDone_G] / dribble_A                         = X,
+            GetBallControl_S + Update_E[haveBallControl_G] / startWait_A = WaitForBackspin_S,
             GetBallControl_S + Update_E / getBallControl_A,
 
+            WaitForBackspin_S + Update_E[dribblingDone_G] / dribble_A                         = X,
             WaitForBackspin_S + Update_E[lostBallControl_G] / getBallControl_A = GetBallControl_S,
             WaitForBackspin_S + Update_E[waitDone_G] / dribble_A = Dribble_S,
             WaitForBackspin_S + Update_E / waitForBackspin_A,
