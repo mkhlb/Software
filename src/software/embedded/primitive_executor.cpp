@@ -22,13 +22,13 @@ PrimitiveExecutor::PrimitiveExecutor(const RobotConstants_t &robot_constants,
 {
 }
 
-void PrimitiveExecutor::updatePrimitiveSet(
-    const TbotsProto::PrimitiveSet &primitive_set_msg)
+void PrimitiveExecutor::updatePrimitive(
+    const TbotsProto::Primitive &primitive_msg)
 {
-    auto primitive_set_msg_iter = primitive_set_msg.robot_primitives().find(robot_id_);
-    if (primitive_set_msg_iter != primitive_set_msg.robot_primitives().end())
+    current_primitive_ = primitive_msg;
+
+    if (current_primitive_.has_move())
     {
-        current_primitive_ = primitive_set_msg_iter->second;
         curr_robot_position_ = createPoint(current_primitive_.move().xy_traj_params().start_position());
 
         if (current_primitive_.has_move())

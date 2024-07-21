@@ -86,8 +86,17 @@ Thunderloop::Thunderloop(const RobotConstants_t& robot_constants, bool enable_lo
       primitive_executor_(robot_constants, TeamColour::YELLOW, robot_id_)
 {
     std::optional<std::string> network_test_error;
-    ThreadedUdpSender network_test(ROBOT_MULTICAST_CHANNELS.at(channel_id_), UNUSED_PORT,
-                                   network_interface_, true, network_test_error);
+    std::unique_ptr<ThreadedUdpSender> network_test(std::make_unique<ThreadedUdpSender>(
+        ROBOT_MULTICAST_CHANNELS.at(channel_id_),
+        UNUSED_PORT, network_interface_, true, network_test_error));
+    while (network_test_error.has_value())
+    {
+        std::cout << "Unable to connect to the network. Received error: " << network_test_error.value() << ". Retrying...";
+        sleep(PING_RETRY_DELAY_S);
+        network_test = std::make_unique<ThreadedUdpSender>(
+            ROBOT_MULTICAST_CHANNELS.at(channel_id_), UNUSED_PORT,
+            network_interface_, true, network_test_error);
+    }
 
     // send an empty packet on the specific network interface to ensure wifi is connected,
     // keeps trying until success
@@ -95,7 +104,7 @@ Thunderloop::Thunderloop(const RobotConstants_t& robot_constants, bool enable_lo
     {
         try
         {
-            network_test.sendString("");
+            network_test->sendString("");
             break;
         }
         catch (std::exception& e)
@@ -111,8 +120,7 @@ Thunderloop::Thunderloop(const RobotConstants_t& robot_constants, bool enable_lo
     std::cout << "Thunderloop connected to network!" << std::endl;
 
     g3::overrideSetupSignals({});
-    NetworkLoggerSingleton::initializeLogger(channel_id_, network_interface_, robot_id_,
-                                             enable_log_merging);
+    LoggerSingleton::initializeLogger("/tmp/tbots", nullptr);
 
     // catch all catch-able signals
     std::signal(SIGSEGV, tbotsExit);
@@ -133,7 +141,7 @@ Thunderloop::Thunderloop(const RobotConstants_t& robot_constants, bool enable_lo
 
     network_service_ = std::make_unique<NetworkService>(
         std::string(ROBOT_MULTICAST_CHANNELS.at(channel_id_)), PRIMITIVE_PORT,
-        ROBOT_STATUS_PORT, network_interface, true);
+        ROBOT_STATUS_PORT, FULLSYSTEM_IP_NOTIFICATION_PORT, ROBOT_IP_NOTIFICATION_PORT, network_interface, true, robot_id);
     LOG(INFO)
         << "THUNDERLOOP: Network Service initialized! Next initializing Power Service";
 
@@ -172,9 +180,9 @@ Thunderloop::~Thunderloop() {}
     struct timespec prev_iter_start_time;
 
     // Input buffer
-    TbotsProto::PrimitiveSet new_primitive_set;
+    TbotsProto::Primitive new_primitive;
     TbotsProto::World new_world;
-    const TbotsProto::PrimitiveSet empty_primitive_set;
+    const TbotsProto::Primitive empty_primitive;
 
     // Loop interval
     int interval =
@@ -222,13 +230,13 @@ Thunderloop::~Thunderloop() {}
 
                 ZoneNamedN(_tracy_network_poll, "Thunderloop: Poll NetworkService", true);
 
-                new_primitive_set = network_service_->poll(robot_status_);
+                new_primitive = network_service_->poll(robot_status_);
             }
 
             thunderloop_status_.set_network_service_poll_time_ms(
                 getMilliseconds(poll_time));
 
-            uint64_t last_handled_primitive_set = primitive_set_.sequence_number();
+            uint64_t last_handled_primitive_set = primitive_.sequence_number();
 
             // Updating primitives and world with newly received data
             // and setting the correct time elasped since last primitive / world
@@ -243,11 +251,11 @@ Thunderloop::~Thunderloop() {}
 
             // If the primitive msg is new, update the internal buffer
             // and start the new primitive.
-            if (new_primitive_set.time_sent().epoch_timestamp_seconds() >
-                primitive_set_.time_sent().epoch_timestamp_seconds())
+            if (new_primitive.time_sent().epoch_timestamp_seconds() >
+                primitive_.time_sent().epoch_timestamp_seconds())
             {
                 // Save new primitive set
-                primitive_set_ = new_primitive_set;
+                primitive_ = new_primitive;
 
                 // Update primitive executor's primitive set
                 {
@@ -256,7 +264,7 @@ Thunderloop::~Thunderloop() {}
                     // Start new primitive
                     {
                         ScopedTimespecTimer timer(&poll_time);
-                        primitive_executor_.updatePrimitiveSet(primitive_set_);
+                        primitive_executor_.updatePrimitive(primitive_);
                     }
 
                     thunderloop_status_.set_primitive_executor_start_time_ms(

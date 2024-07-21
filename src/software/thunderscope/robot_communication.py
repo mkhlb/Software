@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 class RobotCommunication(object):
     """ Communicate with the robots """
 
+    ROBOT_IP_NOTIFICATION_DELAY_S = 0.5
+
     def __init__(
         self,
         current_proto_unix_io: ProtoUnixIO,
@@ -91,6 +93,11 @@ class RobotCommunication(object):
             PowerControl, self.power_control_diagnostics_buffer
         )
 
+        self.primitive_set_senders = [None for _ in range(MAX_ROBOT_IDS_PER_SIDE)]
+        self.robot_ip_listener = None
+        self.fullsystem_ip_sender = None
+        self.robot_broadcast_listener = None
+        self.fullsystem_ip_notification_msg = IpNotification()
         # Whether to accept the next configuration update. We will be provided a proto configuration from the
         # ProtoConfigurationWidget. If the user provides an interface, we will accept it as the first network
         # configuration and ignore the provided one from the widget. If not, we will wait for this first configuration
@@ -100,6 +107,7 @@ class RobotCommunication(object):
             referee_interface=DISCONNECTED,
             vision_interface=DISCONNECTED,
         )
+        self.robot_ips = dict()
         if interface:
             self.accept_next_network_config = False
             self.__setup_for_robot_communication(interface)
@@ -113,6 +121,9 @@ class RobotCommunication(object):
         )
         self.run_primitive_set_thread = threading.Thread(
             target=self.__run_primitive_set, daemon=True
+        )
+        self.notify_robot_ip_thread = threading.Thread(
+            target=self.__notify_robot_ip, daemon=True
         )
 
         # initialising the estop
@@ -197,6 +208,16 @@ class RobotCommunication(object):
 
             self.is_setup_for_fullsystem = True
 
+    def __notify_robot_ip(self) -> None:
+        """
+        Notify the robots of the full system IP address
+        """
+        while self.running:
+            if self.fullsystem_ip_sender is not None and self.fullsystem_ip_notification_msg.ip_address != "":
+                self.fullsystem_ip_sender.send_proto(self.fullsystem_ip_notification_msg)
+            time.sleep(RobotCommunication.ROBOT_IP_NOTIFICATION_DELAY_S)
+
+
     def __setup_for_robot_communication(
         self, robot_communication_interface: str
     ) -> None:
@@ -206,78 +227,135 @@ class RobotCommunication(object):
         :param robot_communication_interface: the interface to listen/send for robot status data. Ignored for sending
         primitives if using radio
         """
-        if (
-            robot_communication_interface
-            == self.current_network_config.robot_communication_interface
-        ) or (robot_communication_interface == DISCONNECTED):
-            return
+        is_setup_successful = True
 
-        is_listener_setup_successfully = True
-
-        def setup_listener(listener_creator: Callable[[], Tuple[Any, str]]) -> Any:
+        def setup_listener(listener_creator: Callable[[], Any]) -> Any:
             """
             Sets up a listener with the given creator function. Logs any errors that occur.
 
-            :param listener_creator: the function to create the listener. It must return a type of
-            (listener object, error)
+            :param listener_creator: the function to create the listener. It must return a type of listener
             """
-            listener, error = listener_creator()
-            if error:
-                logger.error(f"Error setting up robot status interface:\n{error}")
-
+            listener = listener_creator()
+            if listener is None:
+                logger.error(f"Error setting up listener")
+                is_setup_successful = False
             return listener
 
-        # Create the multicast listeners
-        self.receive_robot_status = setup_listener(
-            lambda: tbots_cpp.createRobotStatusProtoListener(
-                self.multicast_channel,
-                ROBOT_STATUS_PORT,
-                robot_communication_interface,
-                self.__receive_robot_status,
-                True,
+        # Create the listeners for RobotStatus, RobotLog and RobotCrash
+        # These listeners are binded to all interfaces
+        if self.receive_robot_status is None:
+            self.receive_robot_status = setup_listener(
+                lambda: tbots_cpp.createRobotStatusProtoListener(
+                    ROBOT_STATUS_PORT,
+                    self.__receive_robot_status,
+                )
             )
+
+        if self.receive_robot_log is None:
+            self.receive_robot_log = setup_listener(
+                lambda: tbots_cpp.createRobotLogProtoListener(
+                    ROBOT_LOGS_PORT,
+                    lambda data: self.__forward_to_proto_unix_io(RobotLog, data),
+                )
+            )
+
+        if self.receive_robot_crash is None:
+            self.receive_robot_crash = setup_listener(
+                lambda: tbots_cpp.createRobotCrashProtoListener(
+                    ROBOT_CRASH_PORT,
+                    lambda data: self.current_proto_unix_io.send_proto(RobotCrash, data),
+                )
+            )
+
+        change_robot_communication_interface = (
+            robot_communication_interface
+            != self.current_network_config.robot_communication_interface
         )
 
-        self.receive_robot_log = setup_listener(
-            lambda: tbots_cpp.createRobotLogProtoListener(
+        if robot_communication_interface == DISCONNECTED:
+            return
+
+        (is_setup_successful, ip_address) = tbots_cpp.getLocalIp(robot_communication_interface, True)
+        self.fullsystem_ip_notification_msg.ip_address = ip_address
+
+        # The following listeners/senders use multicast and are binded to a specific interface
+        if change_robot_communication_interface:
+            self.robot_ip_listener, error = tbots_cpp.createRobotIpProtoListener(
                 self.multicast_channel,
-                ROBOT_LOGS_PORT,
+                ROBOT_IP_NOTIFICATION_PORT,
                 robot_communication_interface,
-                lambda data: self.__forward_to_proto_unix_io(RobotLog, data),
-                True,
+                lambda data: self.__update_robot_ip(data),
+                True
             )
+            if error:
+                logger.error(f"Error setting up robot IP listener:\n{error}")
+                is_setup_successful = False
+                self.robot_ip_listener = None
+
+            self.fullsystem_ip_sender, error = tbots_cpp.createFullsystemIpProtoUdpSender(
+                    self.multicast_channel,
+                    FULLSYSTEM_IP_NOTIFICATION_PORT,
+                    robot_communication_interface,
+                    True,
+            )
+            if error:
+                logger.error(f"Error setting up fullsystem IP sender:\n{error}")
+                is_setup_successful = False
+                self.fullsystem_ip_sender = None
+
+        for robot_id in self.robot_ips.keys():
+            if change_robot_communication_interface or (self.primitive_set_senders[robot_id] is None):
+                self.__connect_to_robot(robot_id)
+
+            if self.primitive_set_senders[robot_id] is None:
+                is_setup_successful = False
+
+        self.current_network_config.robot_communication_interface = (         
+            robot_communication_interface if is_setup_successful else DISCONNECTED
         )
 
-        self.receive_robot_crash = setup_listener(
-            lambda: tbots_cpp.createRobotCrashProtoListener(
-                self.multicast_channel,
-                ROBOT_CRASH_PORT,
-                robot_communication_interface,
-                lambda data: self.current_proto_unix_io.send_proto(RobotCrash, data),
-                True,
-            )
-        )
 
-        # Create multicast senders
+    def __connect_to_robot(self, robot_id: int) -> None:
+        if self.current_network_config.robot_communication_interface == DISCONNECTED:
+            logger.warning("Robot communication interface is not set up")
+            return
+
+        # Create multicast sender
         if self.enable_radio:
             self.send_primitive_set = tbots_cpp.PrimitiveSetProtoRadioSender()
         else:
-            self.send_primitive_set, error = tbots_cpp.createPrimitiveSetProtoUdpSender(
-                self.multicast_channel,
-                PRIMITIVE_PORT,
-                robot_communication_interface,
-                True,
+            def setup_sender(sender_creator: Callable[[], Tuple[Any, str]]) -> Any:
+                """
+                Sets up a sender with the given creator function. Logs any errors that occur.
+
+                :param sender_creator: the function to create the sender. It must return a type of
+                (sender object, error)
+                """
+                sender, error = sender_creator()
+                if error:
+                    logger.error(f"Error setting up primitive set sender:\n{error}")
+
+                return sender
+
+            self.primitive_set_senders[robot_id] = setup_sender(
+                lambda: tbots_cpp.createPrimitiveProtoUdpSender(
+                    self.robot_ips[robot_id],
+                    PRIMITIVE_PORT,
+                    self.current_network_config.robot_communication_interface,
+                    False
+                )
             )
 
-            if error:
-                is_listener_setup_successfully = False
-                logger.error(f"Error setting up primitive set sender:\n{error}")
+        logger.info(f"Connected to robot {robot_id} at {self.robot_ips[robot_id]}")
 
-        self.current_network_config.robot_communication_interface = (
-            robot_communication_interface
-            if is_listener_setup_successfully
-            else DISCONNECTED
-        )
+
+    def __update_robot_ip(self, robot_ip_notification: IpNotification) -> None:
+        if robot_ip_notification.robot_id not in self.robot_ips \
+                or (robot_ip_notification.robot_id in self.robot_ips\
+                and self.robot_ips[robot_ip_notification.robot_id] != robot_ip_notification.ip_address):
+            self.robot_ips[robot_ip_notification.robot_id] = robot_ip_notification.ip_address
+            self.__connect_to_robot(robot_ip_notification.robot_id)
+
 
     def toggle_keyboard_estop(self) -> None:
         """
@@ -453,7 +531,7 @@ class RobotCommunication(object):
             self.sequence_number += 1
 
             if self.__should_send_packet() or self.should_send_stop:
-                self.send_primitive_set.send_proto(primitive_set)
+                self.__send_primitive_set_to_robot(primitive_set)
                 self.should_send_stop = False
 
             # sleep if not running fullsystem
@@ -478,6 +556,7 @@ class RobotCommunication(object):
 
         self.send_estop_state_thread.start()
         self.run_primitive_set_thread.start()
+        self.notify_robot_ip_thread.start()
 
         return self
 
@@ -495,6 +574,23 @@ class RobotCommunication(object):
         )
         self.__forward_to_proto_unix_io(RobotStatus, robot_status)
 
+    def __send_primitive_set_to_robot(self, primitive_set: PrimitiveSet) -> None:
+        """
+        Sends the given primitive set to the robots
+
+        :param primitive_set: the primitive set to send
+        """
+        if self.enable_radio:
+            self.send_primitive_set.send(primitive_set)
+        else:
+            for (robot_id, primitive) in primitive_set.robot_primitives.items():
+                if (robot_id in self.robots_connected_to_fullsystem) or (robot_id in self.robots_connected_to_manual) \
+                        and (self.primitive_set_senders[robot_id] is not None):
+                    primitive.sequence_number = primitive_set.sequence_number
+                    primitive.time_sent.CopyFrom(primitive_set.time_sent)
+                    self.primitive_set_senders[robot_id].send_proto(primitive)
+            
+
     def __exit__(self, type, value, traceback) -> None:
         """Exit RobotCommunication context manager
 
@@ -504,6 +600,7 @@ class RobotCommunication(object):
         self.running = False
 
         self.run_primitive_set_thread.join()
+        self.notify_robot_ip_thread.join()
 
     def print_current_network_config(self) -> None:
         """
