@@ -33,7 +33,7 @@ struct RobotDetection
 struct BallDetection
 {
     // The position of the ball detection on the field, in meters
-    Point position;
+    std::optional<Point> position;
     // The height of the ball off the ground, in meters
     double distance_from_ground;
     // The timestamp of the detection. This is the timestamp for when the camera frame

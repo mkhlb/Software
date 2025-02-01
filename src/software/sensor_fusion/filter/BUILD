@@ -28,6 +28,24 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "better_ball_filter",
+    srcs = ["better_ball_filter.cpp"],
+    hdrs = ["better_ball_filter.h"],
+    deps = [
+        ":vision_detection",
+        "//software/geom/algorithms",
+        "//software/math:math_functions",
+        "//software/world:ball",
+        "//software/world:field",
+        "//software/world:robot",
+        "//software/world:team",
+        "//software/sensor_fusion/filter:kalman_filter",
+        "@boost//:circular_buffer",
+        "@eigen",
+    ],
+)
+
 cc_test(
     name = "ball_filter_test",
     srcs = ["ball_filter_test.cpp"],
