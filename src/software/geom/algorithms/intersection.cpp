@@ -217,3 +217,73 @@ std::optional<Point> intersection(const Ray &first, const Ray &second)
         return std::nullopt;
     }
 }
+
+std::pair<std::optional<Point>, std::optional<Point>> intersection(const Segment &segment, const Circle &circle) {
+    // The line can be represented in parametric form by the equations
+    // x = d+et
+    // y = f+gt
+    // where d = segment_start_x
+    //       e = segment_end_x - segment_start_x
+    //       f = segment_start_y
+    //       g = segment_end_y - segment_end_y
+    // and all variables are relative to the circle's center
+    // such that when t = 0, (x, y = start) and when t = 1, (x, y = end)
+    // The advantage of this is that it allows for vertical lines, and simpler algebra.
+    // Now the circle relative to it's center is represented by
+    // x^2 + y^2 = r^2
+    // so that we get the quadratic
+    // t^2(e^2 + g^2) + t(2de + 2fg) + d^2 + f^2 - r^2 = 0
+    // so we find the discriminant of that quadratic first
+
+    // start and end in circle-space
+    Vector relative_start = segment.getStart() - circle.origin();
+    Vector relative_end = segment.getEnd() - circle.origin();
+    Vector relative_start_to_end = relative_end - relative_start;
+
+    // the terms of the quadratic
+    double quad_a = pow(relative_start_to_end.x(), 2) + pow(relative_start_to_end.y(), 2);
+    double quad_b = 2 * (relative_start.x() * relative_start_to_end.x() + relative_start.y() * relative_start_to_end.y());
+    double quad_c = pow(relative_start.x(), 2) + pow(relative_start.y(), 2) - pow(circle.radius(), 2);
+
+    double discriminant = pow(quad_b, 2) - 4 * quad_a * quad_c;
+
+    // now we know how many solutions we have
+    if (discriminant < 0) {
+        // no real solutions
+        return std::make_pair(std::nullopt, std::nullopt);
+    } else if (discriminant == 0) {
+        // only 1 potential solution
+
+        double solution_t = -quad_b/(2 * quad_a);
+
+        if (solution_t > 1 || solution_t < 0) {
+            // solution is out of bounds of line segment
+            return std::make_pair(std::nullopt, std::nullopt);
+        }
+
+        return std::make_pair(circle.origin() + (relative_start + relative_start_to_end * solution_t), std::nullopt);
+    } else {
+        // this one will be closer to the start if it is valid
+        double solution_t_1 = (- quad_b - sqrt(discriminant)) / (2 * quad_a);
+        double solution_t_2 = (- quad_b + sqrt(discriminant)) / (2 * quad_a);
+
+        std::optional<Point> point_1;
+        std::optional<Point> point_2;
+
+        if (solution_t_2 < 0 || solution_t_2 > 1) {
+            // solution is out of bounds
+            point_2 = std::nullopt;
+        } else {
+            point_2 = std::make_optional(circle.origin() + (relative_start + relative_start_to_end * solution_t_2));
+        }
+        if (solution_t_1 < 0 || solution_t_1 > 1) {
+            // solution 1 is out of bounds, move solution 2 into sol'n 1
+            point_1 = point_2;
+            point_2 = std::nullopt;
+        } else {
+            point_1 = std::make_optional(circle.origin() + (relative_start + relative_start_to_end * solution_t_1));
+        }
+
+        return std::make_pair(point_1, point_2);
+    }
+}

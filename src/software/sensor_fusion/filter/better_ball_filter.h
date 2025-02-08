@@ -40,7 +40,33 @@ public:
      * @param enemy_team
      */
     void processInvisibleNewDetection(const BallDetection& new_ball_detection, const Team& friendly_team, const Team& enemy_team);
+
+    void innovateKalman(const double& delta_time_s);
+
+    void updateKalman(const Point& measurement);
+
+    bool hasBallBeenKicked(const BallDetection& new_ball_detection, double delta_time_s);
 private:
+    /**
+     * Return the point closest to from that is not inside of a robot
+     * (although if two robots are adjacent or inside each other this is not guaranteed)
+     */
+    std::optional<Point> intersectRobotsWithLine(const Point& from, const Point& to, const Team& friendly_team, const Team& enemy_team);
+
+    /**
+     *
+     * @param friendly_team
+     * @param enemy_team
+     * @return a pair containing the robot who is dribbling and the local offset from the center of the robot to the ball
+     */
+    std::optional<std::pair<Robot, Vector>> getDribblerContainingBall(const Team& friendly_team, const Team& enemy_team);
+
+    Timestamp last_update_time_s;
+
+    double max_friction_acceleration;
+
+    bool last_collided_with_bot = false; // true if the last tick had a predicted ball colliding with ball
+    bool last_invisible = false;         // true if the last tick was invisible
 
     enum Mode {
         KALMAN,
@@ -48,6 +74,14 @@ private:
         DRIBBLE,
         AIR
     };
+
+    RobotId bot_in_question_id = -1;
+
+    std::optional<Vector> dribble_offset;
+
+    unsigned int ticks_dribbling = 0;
+
+    Mode current_mode;
     /**
      * 4-dimensional Kalman Filter
      *
@@ -64,7 +98,13 @@ private:
      *  x position
      *  y position
      * ]
+     *
+     * Control Space:
+     * [
+     *  x acceleration
+     *  y acceleration
+     * ]
      */
-    KalmanFilter<4, 2, 0> kalman_filter;
+    KalmanFilter<4, 2, 2> kalman_filter;
 
 };

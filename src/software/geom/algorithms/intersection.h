@@ -4,6 +4,7 @@
 #include <unordered_set>
 
 #include "software/geom/line.h"
+#include "software/geom/circle.h"
 #include "software/geom/polygon.h"
 #include "software/geom/ray.h"
 #include "software/geom/segment.h"
@@ -101,3 +102,14 @@ std::unordered_set<Point> intersection(const Polygon &polygon, const Ray &ray);
  * @return the point of intersection, if it exists
  */
 std::optional<Point> intersection(const Ray &first, const Ray &second);
+
+/**
+ * Computes the point(s) of intersection between a line segment and a circle.
+ *
+ * @param segment
+ * @param circle
+ *
+ * @return the point(s) of intersection. If only one exists, it will be the first in the pair.
+ * If both exists, the closest to the segment's start will be the first in the pair.
+ */
+std::pair<std::optional<Point>, std::optional<Point>> intersection(const Segment &segment, const Circle &circle);
