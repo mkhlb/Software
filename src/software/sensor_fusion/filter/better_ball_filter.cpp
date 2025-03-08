@@ -3,6 +3,7 @@
 
 #include "software/geom/algorithms/intersection.h"
 #include "software/geom/algorithms/distance.h"
+#include "software/geom/algorithms/contains.h"
 
 void BetterBallFilter::processVisibleNewDetection(const BallDetection &new_ball_detection, const Team &friendly_team,
                                                   const Team &enemy_team) {
@@ -72,7 +73,7 @@ void BetterBallFilter::updateKalman(const Point &measurement) {
 }
 
 bool BetterBallFilter::hasBallBeenKicked(const BallDetection& new_ball_detection, double delta_time_s) {
-
+    return false;
 }
 
 std::optional<Point> BetterBallFilter::intersectRobotsWithLine(const Point &from, const Point &to, const Team &friendly_team,
@@ -128,5 +129,50 @@ std::optional<Point> BetterBallFilter::intersectRobotsWithLine(const Point &from
 
 
 }
+
+BetterBallFilter::BetterBallFilter(double ball_friction_acceleration, double process_noise_variance):
+max_friction_acceleration(ball_friction_acceleration)
+{
+
+}
+
+std::optional<Ball>
+BetterBallFilter::estimateBallState(const std::vector<BallDetection> &new_ball_detections, const Rectangle &filter_area,
+                                    const Team &friendly_team, const Team &enemy_team) {
+    Timestamp latestBall;
+    for(BallDetection detection: new_ball_detections) {
+        if (detection.position) {
+            if (contains(filter_area, detection.position.value())) {
+                processVisibleNewDetection(detection, friendly_team, enemy_team);
+                latestBall = detection.timestamp;
+            }
+        }
+        else {
+            processInvisibleNewDetection(detection, friendly_team, enemy_team);
+            latestBall = detection.timestamp;
+        }
+    }
+    return Ball(getBallPosition(), getBallVelocity(), latestBall);
+}
+
+Point BetterBallFilter::getBallPosition() {
+    return {kalman_filter.x[0], kalman_filter.x[2]};
+}
+
+Vector BetterBallFilter::getBallVelocity() {
+    return {kalman_filter.x[1], kalman_filter.x[3]};
+}
+
+std::optional<std::pair<Robot, Vector>>
+BetterBallFilter::getDribblerContainingBall(const Team &friendly_team, const Team &enemy_team) {
+    return std::nullopt;
+}
+
+void BetterBallFilter::processInvisibleNewDetection(const BallDetection &new_ball_detection, const Team &friendly_team,
+                                                    const Team &enemy_team) {
+
+}
+
+
 
 

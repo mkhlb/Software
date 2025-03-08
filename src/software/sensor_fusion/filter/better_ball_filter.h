@@ -61,6 +61,9 @@ private:
      */
     std::optional<std::pair<Robot, Vector>> getDribblerContainingBall(const Team& friendly_team, const Team& enemy_team);
 
+    Point getBallPosition();
+    Vector getBallVelocity();
+
     Timestamp last_update_time_s;
 
     double max_friction_acceleration;

@@ -7,7 +7,7 @@
 #include "proto/message_translation/ssl_referee.h"
 #include "proto/parameters.pb.h"
 #include "proto/sensor_msg.pb.h"
-#include "software/sensor_fusion/filter/ball_filter.h"
+#include "software/sensor_fusion/filter/better_ball_filter.h"
 #include "software/sensor_fusion/filter/robot_team_filter.h"
 #include "software/sensor_fusion/filter/vision_detection.h"
 #include "software/sensor_fusion/possession/possession_tracker.h"
@@ -161,7 +161,7 @@ class SensorFusion
     GameState game_state;
     std::optional<RefereeStage> referee_stage;
 
-    BallFilter ball_filter;
+    BetterBallFilter ball_filter;
     RobotTeamFilter friendly_team_filter;
     RobotTeamFilter enemy_team_filter;
 

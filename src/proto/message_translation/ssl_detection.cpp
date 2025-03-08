@@ -104,8 +104,8 @@ std::vector<BallDetection> createBallDetections(
                 .confidence           = ball.confidence()};
 
             bool ignore_ball = ignore_invalid_camera_data &&
-                               (min_valid_x > ball_detection.position.x() ||
-                                max_valid_x < ball_detection.position.x());
+                               (min_valid_x > ball_detection.position->x() ||
+                                max_valid_x < ball_detection.position->x());
             if (!ignore_ball)
             {
                 ball_detections.push_back(ball_detection);

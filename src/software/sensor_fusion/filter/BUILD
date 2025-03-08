@@ -99,7 +99,7 @@ cc_test(
 cc_library(
     name = "sensor_fusion_filters",
     deps = [
-        ":ball_filter",
+        ":better_ball_filter",
         ":robot_team_filter",
     ],
 )

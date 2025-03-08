@@ -11,7 +11,7 @@ SensorFusion::SensorFusion(TbotsProto::SensorFusionConfig sensor_fusion_config)
       enemy_team(),
       game_state(),
       referee_stage(std::nullopt),
-      ball_filter(),
+      ball_filter(0, 0.6),
       friendly_team_filter(),
       enemy_team_filter(),
       possession(TeamPossession::FRIENDLY_TEAM),
@@ -337,7 +337,7 @@ std::optional<Ball> SensorFusion::createBall(
     if (field)
     {
         std::optional<Ball> new_ball =
-            ball_filter.estimateBallState(ball_detections, field.value().fieldBoundary());
+            ball_filter.estimateBallState(ball_detections, field.value().fieldBoundary(), Team(), Team());
         return new_ball;
     }
     return std::nullopt;
@@ -386,7 +386,7 @@ RobotDetection SensorFusion::invert(RobotDetection robot_detection) const
 BallDetection SensorFusion::invert(BallDetection ball_detection) const
 {
     ball_detection.position =
-        Point(-ball_detection.position.x(), -ball_detection.position.y());
+        Point(-ball_detection.position->x(), -ball_detection.position->y());
     return ball_detection;
 }
 
@@ -432,7 +432,7 @@ void SensorFusion::resetWorldComponents()
     enemy_team           = Team();
     game_state           = GameState();
     referee_stage        = std::nullopt;
-    ball_filter          = BallFilter();
+    ball_filter          = BetterBallFilter(0.5, 0.2);
     friendly_team_filter = RobotTeamFilter();
     enemy_team_filter    = RobotTeamFilter();
     possession           = TeamPossession::FRIENDLY_TEAM;
