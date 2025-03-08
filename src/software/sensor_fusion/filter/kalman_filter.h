@@ -10,6 +10,7 @@
  *
  * This is a good overview if you are familiar with bayesian maths and state based control theory:
  * https://web.mit.edu/kirtley/kirtley/binlustuff/literature/control/Kalman%20filter.pdf
+ *
  * @tparam dim_x The dimension of the state
  * @tparam dim_z The dimension of measurement space
  * @tparam dim_u The dimension of control space
@@ -31,13 +32,13 @@ public:
                  Eigen::Matrix<double, dim_x, dim_x> F, Eigen::Matrix<double, dim_x, dim_x> Q,
                  Eigen::Matrix<double, dim_x, dim_u> B, Eigen::Matrix<double, dim_z, dim_x> H,
                  Eigen::Matrix<double, dim_z, dim_z> R):
-    x(x),
-    P(P),
-    F(F),
-    Q(Q),
-    B(B),
-    H(H),
-    R(R)
+            x(x),
+            P(P),
+            F(F),
+            Q(Q),
+            B(B),
+            H(H),
+            R(R)
     { }
 
     /**

@@ -5,6 +5,8 @@
 #include "software/geom/algorithms/distance.h"
 #include "software/geom/algorithms/contains.h"
 
+#include "software/logger/logger.h"
+
 void BetterBallFilter::processVisibleNewDetection(const BallDetection &new_ball_detection, const Team &friendly_team,
                                                   const Team &enemy_team) {
     if (last_invisible && (current_mode == Mode::DRIBBLE || current_mode == Mode::PUSH)) {
@@ -170,7 +172,7 @@ BetterBallFilter::getDribblerContainingBall(const Team &friendly_team, const Tea
 
 void BetterBallFilter::processInvisibleNewDetection(const BallDetection &new_ball_detection, const Team &friendly_team,
                                                     const Team &enemy_team) {
-
+    LOG(INFO) << "INVISIBLE";
 }
 
 

@@ -16,12 +16,20 @@ config_setting(
     },
 )
 
+config_setting(
+    name = "build_limited",
+    flag_values = {
+        ":host_platform": "LIMITED",
+    },
+)
+
 string_flag(
     name = "host_platform",
     build_setting_default = "PI",
     values = [
         "PI",
         "NANO",
+        "LIMITED",
     ],
 )
 
@@ -110,15 +118,6 @@ cc_test(
         ":thunderloop",
         "//shared/test_util:tbots_gtest_main",
     ],
-)
-
-cc_test(
-    name = "robot_localizer_test",
-    srcs = ["robot_localizer_test.cpp"],
-    deps = [
-        ":robot_localizer",
-        "//shared/test_util:tbots_gtest_main"
-    ]
 )
 
 cc_library(

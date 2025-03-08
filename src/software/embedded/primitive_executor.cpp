@@ -22,28 +22,22 @@ PrimitiveExecutor::PrimitiveExecutor(const Duration time_step,
 {
 }
 
-void PrimitiveExecutor::updatePrimitiveSet(
-    const TbotsProto::PrimitiveSet &primitive_set_msg)
+void PrimitiveExecutor::updatePrimitive(const TbotsProto::Primitive &primitive_msg)
 {
-    auto primitive_set_msg_iter = primitive_set_msg.robot_primitives().find(robot_id_);
-    if (primitive_set_msg_iter != primitive_set_msg.robot_primitives().end())
+    current_primitive_ = primitive_msg;
+
+    if (current_primitive_.has_move())
     {
-        current_primitive_ = primitive_set_msg_iter->second;
+        trajectory_path_ = createTrajectoryPathFromParams(
+            current_primitive_.move().xy_traj_params(), velocity_, robot_constants_);
+        angular_trajectory_ =
+            createAngularTrajectoryFromParams(current_primitive_.move().w_traj_params(),
+                                              orientation_, angular_velocity_, robot_constants_);
 
-        if (current_primitive_.has_move())
-        {
-            trajectory_path_ = createTrajectoryPathFromParams(
-                current_primitive_.move().xy_traj_params(), velocity_, robot_constants_);
-
-            angular_trajectory_ = createAngularTrajectoryFromParams(
-                current_primitive_.move().w_traj_params(), orientation_, angular_velocity_,
-                robot_constants_);
-
-            time_since_linear_trajectory_creation_ =
-                Duration::fromSeconds(VISION_TO_ROBOT_DELAY_S);
-            time_since_angular_trajectory_creation_ =
+        time_since_linear_trajectory_creation_ =
+                Duration::fromSeconds(RTT_S/2);
+        time_since_angular_trajectory_creation_ =
                     Duration::fromSeconds(0);
-        }
     }
 }
 
@@ -94,7 +88,7 @@ AngularVelocity PrimitiveExecutor::getTargetAngularVelocity()
     Angle orientation_to_destination =
         orientation_.minDiff(angular_trajectory_->getDestination());
     Angle error = orientation_.minSignedDiff(angular_trajectory_->getPosition(time_since_angular_trajectory_creation_.toSeconds()));
-    angular_velocity = angular_velocity + error * 0.3; // TODO: MOVE kP to a constant (per robot???)
+    angular_velocity = angular_velocity + error * ORENTATION_KP;
     if (orientation_to_destination.toDegrees() < 5)
     {
         angular_velocity *= orientation_to_destination.toDegrees() / 5;
