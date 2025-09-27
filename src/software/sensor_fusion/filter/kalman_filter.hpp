@@ -92,14 +92,14 @@ void KalmanFilter<DimX, DimY, DimU>::predict(Eigen::Matrix<double, DimU, 1> u)
     P = F * P * F.transpose() + Q;
 }
 
-template <int DimX, int DimY, int DimU>
-void KalmanFilter<DimX, DimY, DimU>::update(Eigen::Matrix<double, DimY, 1> z)
+template <int DimX, int DimZ, int DimU>
+void KalmanFilter<DimX, DimZ, DimU>::update(Eigen::Matrix<double, DimZ, 1> z)
 {
-    Eigen::Matrix<double, DimY, 1> y      = z - H * x;  // residual
-    Eigen::Matrix<double, DimY, DimY> sum = H * P * H.transpose() + R;
-    Eigen::Matrix<double, DimY, DimY> newSum =
+    Eigen::Matrix<double, DimZ, 1> y      = z - H * x;  // residual
+    Eigen::Matrix<double, DimZ, DimZ> sum = H * P * H.transpose() + R;
+    Eigen::Matrix<double, DimZ, DimZ> newSum =
         sum.unaryExpr([](double l) { return (fabs(l) < 1.0e-20) ? 0. : l; });
-    Eigen::Matrix<double, DimX, DimY> K =
+    Eigen::Matrix<double, DimX, DimZ> K =
         P * (H.transpose() *
              newSum.completeOrthogonalDecomposition().pseudoInverse());  // Kalman gain
     Eigen::Matrix<double, DimX, 1> newX = x + K * y;
